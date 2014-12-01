@@ -1,7 +1,15 @@
 /*****************************************************************************
- * IPEX Translation Helper
+ * WebLocalizr Translation Helper
  * author: Pavel Lang <langpavel@phpskelet.org>
  *****************************************************************************/
+
+// this regular expression
+// 考 - remarks
+// 項 - section
+// 場 - place
+// 終 - end
+var reTranslationMarks = window.reTranslationMarks || /考(.+?)(?:項(.*?))?(?:場(.+?))?終/g;
+
 
 console.log('IPEX translation dev-tool injected :-)');
 
@@ -302,9 +310,6 @@ var missingTranslations = {
 missingTranslations.init();
 
 
-var reTranslationMarks = /考(.+?)(?:場(.+?))?終/g;
-
-
 var doubletranslationAlert = function(doubleTranslated) {
   doubleTranslated = doubleTranslated.replace(/[■▣□考]/g,'');
   console.error("WARNING: Trying to double translate text:\n" + doubleTranslated);
@@ -318,7 +323,7 @@ doubletranslationAlert.reported = [];
 
 
 var translateMarkedTexts = function(text, texts) {
-  text = text.replace(reTranslationMarks, function(match, text, module) {
+  text = text.replace(reTranslationMarks, function(match, text, replaces, module) {
     texts[text] = {
       module: module || 'common'
     };
