@@ -1,17 +1,21 @@
 /*****************************************************************************
  * WebLocalizr Translation Helper
+ * https://github.com/langpavel/weblocalizr
  * author: Pavel Lang <langpavel@phpskelet.org>
  *****************************************************************************/
 
-// this regular expression
-// 考 - remarks
-// 項 - section
-// 場 - place
-// 終 - end
-var reTranslationMarks = window.reTranslationMarks || /考(.+?)(?:項(.*?))?(?:場(.+?))?終/g;
+window.webLocalizr = window.webLocalizr || {};
+window.webLocalizr.apiBase = window.webLocalizr.apiBase || 'https://localhost:30443/';
+
+// this regular expression:
+// 考 - remarks - start MSGID
+// 項 - section - JSON encoded data for formatter (optional)
+// 場 - place - translation domain (optional, default common)
+// 終 - end - end
+window.webLocalizr.translationRegex = window.webLocalizr.translationRegex || /考(.+?)(?:項(.*?))?(?:場(.+?))?終/g;
 
 
-console.log('IPEX translation dev-tool injected :-)');
+console.log('WebLocalizr injected with options', window.webLocalizr);
 
 var observer = new MutationObserver(function(mutationList) {
   mutationList.forEach(function(mutation) {
@@ -145,7 +149,10 @@ var apiCall = function(path, options, callback) {
       }
     }
   };
-  xhr.open(options.method || 'GET', 'https://localhost:30443/' + path);
+
+  var apiBase = options.apiBase || window.webLocalizr.apiBase;
+
+  xhr.open(options.method || 'GET', apiBase + path);
   var data = options.data;
   if (typeof data == 'object') {
     data = JSON.stringify(data);
@@ -164,7 +171,7 @@ var saveTranslation = function(lang, module, key, translation, callback) {
   var data = {};
   data[key] = translation;
 
-  apiCall('api/lang/'+lang+module, {
+  apiCall('/api/lang/'+lang+module, {
     method: 'POST',
     data: data
   }, function(err, translations) {
@@ -184,7 +191,7 @@ var loadLanguageModule = function(lang, module, callback) {
   module = module || '/common';
   modules = languages[lang] || (languages[lang] = {});
   modules[module] = {}; // empty while loading
-  apiCall('api/lang/'+lang+module, {}, function(err, translations) {
+  apiCall('/api/lang/'+lang+module, {}, function(err, translations) {
     if (translations) {
       languages[lang][module] = translations;
     }
@@ -323,7 +330,7 @@ doubletranslationAlert.reported = [];
 
 
 var translateMarkedTexts = function(text, texts) {
-  text = text.replace(reTranslationMarks, function(match, text, replaces, module) {
+  text = text.replace(window.webLocalizr.translationRegex, function(match, text, replaces, module) {
     texts[text] = {
       module: module || 'common'
     };
@@ -331,7 +338,7 @@ var translateMarkedTexts = function(text, texts) {
     return text;
   });
 
-  var text = text.replace(reTranslationMarks, function(match, text) {
+  var text = text.replace(window.webLocalizr.translationRegex, function(match, text) {
     doubletranslationAlert(text);
     return text;
   })
